@@ -1,5 +1,5 @@
 import numpy as np
-from deep_neutral_network import ActivationFunction
+from activation_function import ActivationFunction
 
 
 class DeepNeuralNetwork:
