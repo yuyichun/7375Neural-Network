@@ -64,3 +64,54 @@ class DeepNeuralNetwork:
                 grads['dW' + str(l)]
             self.parameters['b' + str(l)] -= learning_rate * \
                 grads['db' + str(l)]
+
+    
+    def generate_mini_batches(self, X, Y, mini_batch_size):
+        m = X.shape[1]  # number of training examples
+        mini_batches = []
+        
+        # Shuffle (X, Y)
+        permutation = np.random.permutation(m)
+        shuffled_X = X[:, permutation]
+        shuffled_Y = Y[:, permutation].reshape((1,m))
+
+        # Partition (shuffled_X, shuffled_Y) into mini-batches
+        num_complete_minibatches = m // mini_batch_size
+
+        for k in range(num_complete_minibatches):
+            mini_batch_X = shuffled_X[:, k * mini_batch_size : (k + 1) * mini_batch_size]
+            mini_batch_Y = shuffled_Y[:, k * mini_batch_size : (k + 1) * mini_batch_size]
+            mini_batch = (mini_batch_X, mini_batch_Y)
+            mini_batches.append(mini_batch)
+    
+        # Handling the end case (last mini-batch < mini_batch_size)
+        if m % mini_batch_size != 0:
+            mini_batch_X = shuffled_X[:, num_complete_minibatches * mini_batch_size:]
+            mini_batch_Y = shuffled_Y[:, num_complete_minibatches * mini_batch_size:]
+            mini_batch = (mini_batch_X, mini_batch_Y)
+            mini_batches.append(mini_batch)
+        
+        return mini_batches
+
+    def train(self, X, Y, iterations, learning_rate, mini_batch_size):
+        for i in range(iterations):
+            mini_batches = self.generate_mini_batches(X, Y, mini_batch_size)
+            
+            for mini_batch in mini_batches:
+                (mini_batch_X, mini_batch_Y) = mini_batch
+                
+                # Forward propagation
+                AL, caches = self.forward_propagation(mini_batch_X)
+
+                # Compute cost
+                cost = self.compute_cost(AL, mini_batch_Y)
+
+                # Backward propagation
+                grads = self.backward_propagation(AL, mini_batch_Y, caches)
+
+                # Update parameters
+                self.update_parameters(grads, learning_rate)
+                
+            # You can print the cost here every 100 iterations, for example
+            if i % 100 == 0:
+                print(f"Cost after iteration {i}: {cost}")
